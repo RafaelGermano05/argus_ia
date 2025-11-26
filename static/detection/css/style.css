@@ -14,6 +14,10 @@
     --info-color: #00bfff;
 }
 
+*{
+    color: beige;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-black) 100%);
