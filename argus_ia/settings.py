@@ -104,6 +104,18 @@ WHITENOISE_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Session configuration
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 3600  # 1 hora
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# CSRF configuration
+CSRF_TRUSTED_ORIGINS = [
+    'https://argus-ia.up.railway.app',
+    'https://*.railway.app'
+]
+
 # if not DEBUG:
 #     SECURE_SSL_REDIRECT = True
 #     SESSION_COOKIE_SECURE = True

@@ -7,6 +7,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views import View
 from django.contrib import messages
 from django.db import transaction
+import io
 
 from .models import Dataset, AnalysisSession, SuspiciousComment, UserBehavior, PostAnalysis
 from .ml.data_generator import DataGenerator
@@ -34,6 +35,8 @@ class GenerateDatasetView(View):
             comments_count = data.get('comments_count', 5000)
             suspicious_ratio = data.get('suspicious_ratio', 0.05)
             
+            print(f"🎯 Gerando dataset: {posts_count} posts, {comments_count} comentários, {suspicious_ratio*100}% suspeitos")
+            
             # Gerar dataset
             posts_df, comments_df, actual_suspicious = DataGenerator.generate_dataset(
                 posts_count, comments_count, suspicious_ratio
@@ -47,24 +50,17 @@ class GenerateDatasetView(View):
                 comments_count=comments_count
             )
             
-            # Salvar dados em arquivos temporários
-            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='_posts.csv') as posts_file:
-                posts_df.to_csv(posts_file.name, index=False)
-                posts_path = posts_file.name
-            
-            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='_comments.csv') as comments_file:
-                comments_df.to_csv(comments_file.name, index=False)
-                comments_path = comments_file.name
-            
-            # Salvar no session
+            # Em produção, salvar os DataFrames em memória (não em arquivos)
             request.session['current_dataset'] = {
                 'id': str(dataset.id),
                 'posts_count': posts_count,
                 'comments_count': comments_count,
                 'actual_suspicious': actual_suspicious,
-                'posts_path': posts_path,
-                'comments_path': comments_path
+                'posts_data': posts_df.to_json(orient='records'),  # Salvar como JSON em memória
+                'comments_data': comments_df.to_json(orient='records')  # Salvar como JSON em memória
             }
+            
+            print(f"✅ Dataset gerado: {actual_suspicious} comentários suspeitos")
             
             return JsonResponse({
                 'success': True,
@@ -79,6 +75,7 @@ class GenerateDatasetView(View):
             })
             
         except Exception as e:
+            print(f"❌ Erro ao gerar dataset: {str(e)}")
             return JsonResponse({'success': False, 'error': str(e)})
 
 class AnalyzeDatasetView(View):
@@ -88,9 +85,11 @@ class AnalyzeDatasetView(View):
             if not dataset_info:
                 return JsonResponse({'success': False, 'error': 'Nenhum dataset carregado'})
             
-            # Carregar dados
-            posts_df = pd.read_csv(dataset_info['posts_path'])
-            comments_df = pd.read_csv(dataset_info['comments_path'])
+            print("📊 Iniciando análise do dataset...")
+            
+            # Carregar dados da sessão (JSON em memória)
+            posts_df = pd.read_json(io.StringIO(dataset_info['posts_data']))
+            comments_df = pd.read_json(io.StringIO(dataset_info['comments_data']))
             
             # Criar sessão de análise
             dataset = Dataset.objects.get(id=dataset_info['id'])
@@ -171,15 +170,11 @@ class AnalyzeDatasetView(View):
             
             PostAnalysis.objects.bulk_create(post_analysis_objs)
             
-            # Limpar arquivos temporários
-            if os.path.exists(dataset_info['posts_path']):
-                os.unlink(dataset_info['posts_path'])
-            if os.path.exists(dataset_info['comments_path']):
-                os.unlink(dataset_info['comments_path'])
-            
             # Limpar session
             if 'current_dataset' in request.session:
                 del request.session['current_dataset']
+            
+            print(f"✅ Análise concluída: {suspicious_count} suspeitos detectados")
             
             return JsonResponse({
                 'success': True,
@@ -197,6 +192,7 @@ class AnalyzeDatasetView(View):
             })
             
         except Exception as e:
+            print(f"❌ Erro na análise: {str(e)}")
             return JsonResponse({'success': False, 'error': str(e)})
 
 class AnalysisResultsView(View):
