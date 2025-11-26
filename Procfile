@@ -1,1 +1,1 @@
-web: python manage.py migrate && gunicorn argus_ia.wsgi:application --bind 0.0.0.0:$PORT
+web: python manage.py collectstatic --noinput && python manage.py migrate --noinput && gunicorn argus_ia.wsgi:application --bind 0.0.0.0:$PORT
