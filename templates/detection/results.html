@@ -68,9 +68,9 @@
                     <a href="{% url 'detection:export_data' analysis.id %}?format=csv" class="btn btn-success btn-lg me-2">
                         <i class="fas fa-file-csv"></i> Exportar para CSV
                     </a>
-                    <a href="{% url 'detection:export_data' analysis.id %}?format=excel" class="btn btn-primary btn-lg">
+                    <!-- <a href="{% url 'detection:export_data' analysis.id %}?format=excel" class="btn btn-primary btn-lg">
                         <i class="fas fa-file-excel"></i> Exportar para Excel
-                    </a>
+                    </a> -->
                     <p class="text-muted mt-2 mb-0">Os arquivos exportados incluem comentários suspeitos, estatísticas e análises de comportamento</p>
                 </div>
             </div>
@@ -161,7 +161,7 @@
                             </thead>
                             <tbody>
                                 {% for user in top_users %}
-                                <tr>
+                                <tr style="color: beige;">
                                     <td>
                                         <strong>{{ user.username }}</strong>
                                         <br><small class="text-muted">ID: {{ user.user_id }}</small>
@@ -222,7 +222,7 @@
                             </thead>
                             <tbody>
                                 {% for post in top_posts %}
-                                <tr>
+                                <tr style="color: beige;">
                                     <td><strong>#{{ post.post_id }}</strong></td>
                                     <td>{{ post.username }}</td>
                                     <td>
