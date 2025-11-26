@@ -11,6 +11,3 @@ cmds = [
 
 [start]
 cmd = "python manage.py migrate --noinput && gunicorn argus_ia.wsgi:application --bind 0.0.0.0:$PORT"
-
-[providers.railway]
-deployCommand = "python manage.py migrate --noinput && gunicorn argus_ia.wsgi:application --bind 0.0.0.0:$PORT"
