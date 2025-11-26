@@ -18,6 +18,61 @@
     color: beige;
 }
 
+.table td {
+    color: #ffffff !important; /* Força texto branco */
+    background: rgba(26, 26, 46, 0.8) !important;
+    border-color: rgba(138, 43, 226, 0.3) !important;
+}
+
+.table th {
+    color: #ffffff !important; /* Texto branco nos cabeçalhos */
+    background: linear-gradient(135deg, var(--primary-purple) 0%, var(--secondary-purple) 100%) !important;
+    border: none !important;
+}
+
+/* Garantir que todas as células tenham texto branco */
+.table tbody tr td {
+    color: #ffffff !important;
+}
+
+/* Linhas alternadas - manter contraste mas com texto legível */
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(106, 13, 173, 0.2) !important;
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+    background-color: rgba(26, 26, 46, 0.9) !important;
+}
+
+/* Hover nas linhas */
+.table-hover tbody tr:hover td {
+    background-color: rgba(138, 43, 226, 0.3) !important;
+    color: #ffffff !important;
+}
+
+/* Texto em badges também branco */
+.badge {
+    color: #ffffff !important;
+}
+
+/* Texto em cards */
+.card {
+    color: #e6e6e6 !important;
+}
+
+.card-body {
+    color: #e6e6e6 !important;
+}
+
+/* Texto em formulários */
+.form-control {
+    color: #ffffff !important;
+}
+
+.form-control::placeholder {
+    color: #b3b3b3 !important;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-black) 100%);
