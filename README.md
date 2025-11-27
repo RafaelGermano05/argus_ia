@@ -108,7 +108,7 @@ python manage.py runserver
 
 ## Licença e Créditos
 
-MIT
+MIT License
 
 ---
 
