@@ -6,7 +6,6 @@ app_name = 'detection'
 urlpatterns = [
     path('', views.DashboardView.as_view(), name='dashboard'),
     path('generate-dataset/', views.GenerateDatasetPageView.as_view(), name='generate_dataset_page'),
-    path('generate-dataset/', views.GenerateDatasetPageView.as_view(), name='generate_dataset_page'),
     path('generate-download/', views.GenerateAndDownloadDatasetView.as_view(), name='generate_and_download_dataset'),
     path('download-posts-csv/', views.DownloadPostsCSVView.as_view(), name='download_posts_csv'),
     path('download-comments-csv/', views.DownloadCommentsCSVView.as_view(), name='download_comments_csv'),
@@ -14,4 +13,5 @@ urlpatterns = [
     path('analyze-dataset/', views.AnalyzeDatasetView.as_view(), name='analyze_dataset'),
     path('results/<uuid:analysis_id>/', views.AnalysisResultsView.as_view(), name='analysis_results'),
     path('export/<uuid:analysis_id>/', views.ExportDataView.as_view(), name='export_data'),
+    path('debug-session/', views.DebugSessionView.as_view(), name='debug_session'),
 ]
