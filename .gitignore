@@ -1,0 +1,22 @@
+# Django
+*.pyc
+__pycache__/
+db.sqlite3
+migrations/
+
+# Environment
+.env
+.venv
+venv/
+
+# Static files collected
+staticfiles/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Dataset files (não commitar datasets)
+*.csv
+*.xlsx
+*.zip

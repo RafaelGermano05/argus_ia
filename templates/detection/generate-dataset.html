@@ -1,0 +1,163 @@
+{% extends 'detection/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="fas fa-database"></i> Gerar Dataset de Teste</h1>
+                <p class="lead">Crie datasets personalizados para testar o sistema</p>
+            </div>
+            <a href="{% url 'detection:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar à Análise
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-cogs"></i> Configurações do Dataset</h5>
+            </div>
+            <div class="card-body">
+                <form id="generateDatasetForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="postsCount" class="form-label">Número de Posts</label>
+                        <input type="number" class="form-control" id="postsCount" value="500" min="100" max="10000" required>
+                        <div class="form-text">Recomendado: 500-2000 posts para testes rápidos</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="commentsCount" class="form-label">Número de Comentários</label>
+                        <input type="number" class="form-control" id="commentsCount" value="2500" min="500" max="50000" required>
+                        <div class="form-text">Recomendado: 2000-10000 comentários</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="suspiciousRatio" class="form-label">Taxa de Conteúdo Suspeito (%)</label>
+                        <input type="number" class="form-control" id="suspiciousRatio" value="5" min="1" max="20" step="0.1" required>
+                        <div class="form-text">Percentual de comentários suspeitos no dataset (1-20%)</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" id="generateBtn">
+                        <i class="fas fa-cogs"></i> Gerar e Baixar Dataset
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-download"></i> Dataset Gerado</h5>
+            </div>
+            <div class="card-body text-center">
+                <div id="downloadSection" class="d-none">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h5>Dataset Gerado com Sucesso!</h5>
+                    <p>Faça download dos arquivos CSV:</p>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <a id="downloadPosts" href="#" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-file-csv"></i> posts.csv
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a id="downloadComments" href="#" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-file-csv"></i> comments.csv
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{% url 'detection:dashboard' %}" class="btn btn-success">
+                            <i class="fas fa-play"></i> Ir para Análise
+                        </a>
+                    </div>
+                </div>
+                
+                <div id="noDatasetGenerated">
+                    <i class="fas fa-database fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Configure as opções e gere um dataset para download</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0"><i class="fas fa-info-circle"></i> Instruções</h6>
+            </div>
+            <div class="card-body">
+                <ol class="small">
+                    <li>Configure o tamanho do dataset</li>
+                    <li>Clique em "Gerar e Baixar Dataset"</li>
+                    <li>Faça download dos arquivos CSV</li>
+                    <li>Volte à página principal</li>
+                    <li>Use "Upload de Dataset" para analisar</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Gerar Dataset
+document.getElementById('generateDatasetForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const generateBtn = document.getElementById('generateBtn');
+    const originalText = generateBtn.innerHTML;
+    
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+    
+    const data = {
+        posts_count: parseInt(document.getElementById('postsCount').value),
+        comments_count: parseInt(document.getElementById('commentsCount').value),
+        suspicious_ratio: parseFloat(document.getElementById('suspiciousRatio').value) / 100
+    };
+    
+    try {
+        const response = await fetch('{% url "detection:generate_and_download_dataset" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'dataset.zip';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Mostrar seção de download
+            document.getElementById('downloadSection').classList.remove('d-none');
+            document.getElementById('noDatasetGenerated').classList.add('d-none');
+            
+            showAlert('Dataset gerado e baixado com sucesso!', 'success');
+        } else {
+            const result = await response.json();
+            showAlert('Erro ao gerar dataset: ' + result.error, 'danger');
+        }
+    } catch (error) {
+        showAlert('Erro de conexão: ' + error.message, 'danger');
+    } finally {
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = originalText;
+    }
+});
+</script>
+{% endblock %}
