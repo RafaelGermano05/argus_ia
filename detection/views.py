@@ -236,14 +236,14 @@ class ExportDataView(View):
             
         except AnalysisSession.DoesNotExist:
             return JsonResponse({'error': 'Análise não encontrada'})
-            
+
 class GenerateDatasetPageView(View):
     """Página para gerar datasets"""
     def get(self, request):
         return render(request, 'detection/generate_dataset.html')
 
 class GenerateAndDownloadDatasetView(View):
-    """Gera e faz download do dataset como ZIP"""
+    """Gera e faz download automático dos CSVs"""
     def post(self, request):
         try:
             data = json.loads(request.body)
@@ -256,43 +256,45 @@ class GenerateAndDownloadDatasetView(View):
                 posts_count, comments_count, suspicious_ratio
             )
             
-            # Criar arquivo ZIP em memória
-            zip_buffer = io.BytesIO()
-            with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
-                # Adicionar posts.csv
-                posts_csv = posts_df.to_csv(index=False)
-                zip_file.writestr('posts.csv', posts_csv)
-                
-                # Adicionar comments.csv
-                comments_csv = comments_df.to_csv(index=False)
-                zip_file.writestr('comments.csv', comments_csv)
-                
-                # Adicionar README
-                readme_content = f"""ARGUS IA - Dataset Gerado
-                
-Configurações:
-- Posts: {posts_count}
-- Comentários: {comments_count}
-- Taxa de conteúdo suspeito: {suspicious_ratio*100}%
-- Comentários suspeitos gerados: {actual_suspicious}
-
-Instruções:
-1. Extraia os arquivos
-2. Use na página principal do ARGUS IA
-3. Faça upload de posts.csv e comments.csv
-4. Execute a análise com Machine Learning
-"""
-                zip_file.writestr('README.txt', readme_content)
+            # Criar resposta com ambos CSVs em JSON
+            response_data = {
+                'success': True,
+                'posts_csv': posts_df.to_csv(index=False),
+                'comments_csv': comments_df.to_csv(index=False),
+                'dataset_info': {
+                    'posts_count': posts_count,
+                    'comments_count': comments_count,
+                    'suspicious_ratio': f"{suspicious_ratio*100}%",
+                    'actual_suspicious': actual_suspicious
+                }
+            }
             
-            zip_buffer.seek(0)
-            
-            response = HttpResponse(zip_buffer, content_type='application/zip')
-            response['Content-Disposition'] = 'attachment; filename="argus_ia_dataset.zip"'
-            
-            return response
+            return JsonResponse(response_data)
             
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
+
+class DownloadPostsCSVView(View):
+    """Faz download do posts.csv"""
+    def get(self, request):
+        dataset_data = request.session.get('generated_dataset')
+        if not dataset_data:
+            return HttpResponse("Dados não encontrados. Gere um dataset primeiro.", status=404)
+        
+        response = HttpResponse(dataset_data['posts_data'], content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="posts.csv"'
+        return response
+
+class DownloadCommentsCSVView(View):
+    """Faz download do comments.csv"""
+    def get(self, request):
+        dataset_data = request.session.get('generated_dataset')
+        if not dataset_data:
+            return HttpResponse("Dados não encontrados. Gere um dataset primeiro.", status=404)
+        
+        response = HttpResponse(dataset_data['comments_data'], content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="comments.csv"'
+        return response
 
 class UploadDatasetView(View):
     """Faz upload de dataset CSV"""

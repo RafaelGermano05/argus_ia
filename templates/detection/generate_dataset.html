@@ -49,32 +49,46 @@
 
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="card-title mb-0"><i class="fas fa-download"></i> Dataset Gerado</h5>
+         <div class="card-header bg-info text-white">
+        <h5 class="card-title mb-0"><i class="fas fa-download"></i> Dataset Gerado</h5>
+    </div>
+    <div class="card-body text-center">
+        <div id="downloadSection" class="d-none">
+            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+            <h5>Dataset Gerado com Sucesso!</h5>
+            <p>Faça download dos arquivos CSV:</p>
+            
+            <div class="row">
+                <div class="col-6">
+                    <a id="downloadPostsBtn" href="#" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="fas fa-file-csv"></i> Baixar posts.csv
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a id="downloadCommentsBtn" href="#" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="fas fa-file-csv"></i> Baixar comments.csv
+                    </a>
+                </div>
             </div>
-            <div class="card-body text-center">
-                <div id="downloadSection" class="d-none">
-                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                    <h5>Dataset Gerado com Sucesso!</h5>
-                    <p>Faça download dos arquivos CSV:</p>
-                    
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> O download iniciará automaticamente em alguns segundos.
-                    </div>
-                    
-                    <div class="mt-3">
-                        <a href="{% url 'detection:dashboard' %}" class="btn btn-success">
-                            <i class="fas fa-play"></i> Ir para Análise
-                        </a>
-                    </div>
-                </div>
-                
-                <div id="noDatasetGenerated">
-                    <i class="fas fa-database fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">Configure as opções e gere um dataset para download</p>
-                </div>
+            
+            <div id="datasetInfo" class="mt-3 p-3 bg-light rounded">
+                <h6>Informações do Dataset:</h6>
+                <div id="datasetDetails" class="small"></div>
+            </div>
+            
+            <div class="mt-3">
+                <a href="{% url 'detection:dashboard' %}" class="btn btn-success">
+                    <i class="fas fa-play"></i> Ir para Análise
+                </a>
             </div>
         </div>
+        
+        <div id="noDatasetGenerated">
+            <i class="fas fa-database fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Configure as opções e gere um dataset para download</p>
+        </div>
+    </div>
+</div>
 
         <!-- Informações -->
         <div class="card mt-3">
@@ -123,6 +137,7 @@ document.getElementById('generateDatasetForm').addEventListener('submit', async 
         suspicious_ratio: parseFloat(document.getElementById('suspiciousRatio').value) / 100
     };
     
+    // No evento de submit do formulário, substitua a parte do try por:
     try {
         const response = await fetch('{% url "detection:generate_and_download_dataset" %}', {
             method: 'POST',
@@ -133,34 +148,49 @@ document.getElementById('generateDatasetForm').addEventListener('submit', async 
             body: JSON.stringify(data)
         });
         
-        if (response.ok) {
-            // Mostrar seção de download
+        const result = await response.json();
+        
+        if (result.success) {
+            // Fazer download automático dos CSVs
+            downloadCSV(result.posts_csv, 'posts.csv');
+            setTimeout(() => {
+                downloadCSV(result.comments_csv, 'comments.csv');
+            }, 500);
+            
+            // Mostrar informações
             document.getElementById('downloadSection').classList.remove('d-none');
             document.getElementById('noDatasetGenerated').classList.add('d-none');
             
-            // Fazer download do arquivo
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'argus_ia_dataset.zip';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+            document.getElementById('datasetDetails').innerHTML = `
+                <strong>Posts:</strong> ${result.dataset_info.posts_count.toLocaleString()}<br>
+                <strong>Comentários:</strong> ${result.dataset_info.comments_count.toLocaleString()}<br>
+                <strong>Taxa suspeita:</strong> ${result.dataset_info.suspicious_ratio}<br>
+                <strong>Suspeitos gerados:</strong> ${result.dataset_info.actual_suspicious}
+            `;
             
-            showAlert('Dataset gerado e baixado com sucesso!', 'success');
+            showAlert('Dataset gerado! Os downloads iniciarão automaticamente.', 'success');
         } else {
-            const result = await response.json();
             showAlert('Erro ao gerar dataset: ' + result.error, 'danger');
         }
     } catch (error) {
         showAlert('Erro de conexão: ' + error.message, 'danger');
-    } finally {
-        generateBtn.disabled = false;
-        generateBtn.innerHTML = originalText;
+    }
+
+    // Função auxiliar para download de CSV
+    function downloadCSV(csvContent, fileName) {
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', fileName);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 });
+
+
 
 // Função para mostrar alertas
 function showAlert(message, type) {
