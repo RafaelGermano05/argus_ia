@@ -174,12 +174,14 @@
 {% endblock %}
 
 {% block scripts %}
+
 <script>
-// Função para mostrar alertas
+// Função para mostrar alertas - COMPLETA
 function showAlert(message, type) {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
     alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
@@ -193,19 +195,6 @@ function showAlert(message, type) {
             alertDiv.remove();
         }
     }, 5000);
-}
-
-// Função para rolar até as análises
-function scrollToAnalyses() {
-    const analysesSection = document.getElementById('analysesSection');
-    if (analysesSection) {
-        analysesSection.scrollIntoView({ behavior: 'smooth' });
-    }
-}
-
-// Função para mostrar todas as análises
-function showAllAnalyses() {
-    scrollToAnalyses();
 }
 
 // Upload de Dataset
@@ -232,16 +221,15 @@ document.getElementById('uploadDatasetForm').addEventListener('submit', async fu
         const result = await response.json();
         
         if (result.success) {
-            // Mostrar informações do dataset
             document.getElementById('datasetDetails').innerHTML = `
                 <div class="row">
                     <div class="col-6">
                         <strong>${result.dataset.name}</strong><br>
-                        <small class="text-muted">Posts: ${result.dataset.posts_count}</small>
+                        <small>Posts: ${result.dataset.posts_count}</small>
                     </div>
                     <div class="col-6">
-                        <small class="text-muted">Comentários: ${result.dataset.comments_count}</small><br>
-                        <small class="text-success">Dataset carregado com sucesso!</small>
+                        <small>Comentários: ${result.dataset.comments_count}</small><br>
+                        <small class="text-success">✓ Dataset carregado!</small>
                     </div>
                 </div>
             `;
@@ -262,10 +250,8 @@ document.getElementById('uploadDatasetForm').addEventListener('submit', async fu
     }
 });
 
-// Executar Análise
+// Executar Análise - FUNCIONAL
 document.getElementById('analyzeBtn').addEventListener('click', async function() {
-    console.log('🔍 Analyze button clicked');
-    
     const analyzeBtn = document.getElementById('analyzeBtn');
     const progressDiv = document.getElementById('analysisProgress');
     const originalText = analyzeBtn.innerHTML;
@@ -275,37 +261,28 @@ document.getElementById('analyzeBtn').addEventListener('click', async function()
     progressDiv.classList.remove('d-none');
     
     try {
-        console.log('📤 Enviando requisição de análise...');
-        
         const response = await fetch('{% url "detection:analyze_dataset" %}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': '{{ csrf_token }}'
             },
-            body: JSON.stringify({}) // Dados vazios
+            body: JSON.stringify({})
         });
         
-        console.log('📥 Resposta recebida:', response.status, response.statusText);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
         const result = await response.json();
-        console.log('📊 Resultado da análise:', result);
         
         if (result.success) {
             showAlert(
                 `✅ Análise concluída com sucesso!<br>
                 📊 Comentários analisados: ${result.analysis.total_comments.toLocaleString()}<br>
-                🚨 Padrões suspeitos detectados: ${result.analysis.suspicious_count}<br>
+                🚨 Suspeitos detectados: ${result.analysis.suspicious_count}<br>
                 📈 Taxa de detecção: ${result.analysis.suspicious_percentage.toFixed(2)}%<br>
-                🧠 Acurácia do modelo: ${(result.analysis.accuracy * 100).toFixed(2)}%`, 
+                🧠 Acurácia: ${(result.analysis.accuracy * 100).toFixed(2)}%`, 
                 'success'
             );
             
-            // Redirecionar para resultados após 3 segundos
+            // Redirecionar para resultados
             setTimeout(() => {
                 window.location.href = `/results/${result.analysis.id}/`;
             }, 3000);
@@ -313,7 +290,6 @@ document.getElementById('analyzeBtn').addEventListener('click', async function()
             showAlert('❌ Erro na análise: ' + result.error, 'danger');
         }
     } catch (error) {
-        console.error('💥 Erro completo:', error);
         showAlert('❌ Erro de conexão: ' + error.message, 'danger');
     } finally {
         analyzeBtn.disabled = false;
@@ -322,19 +298,16 @@ document.getElementById('analyzeBtn').addEventListener('click', async function()
     }
 });
 
-// Debug: Verificar status do dataset
-function checkDatasetStatus() {
-    const datasetInfo = document.getElementById('datasetInfo');
-    const noDatasetInfo = document.getElementById('noDatasetInfo');
-    
-    console.log('Dataset Info visible:', !datasetInfo.classList.contains('d-none'));
-    console.log('No Dataset visible:', !noDatasetInfo.classList.contains('d-none'));
+// Funções auxiliares
+function scrollToAnalyses() {
+    const analysesSection = document.getElementById('analysesSection');
+    if (analysesSection) {
+        analysesSection.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
-// Inicialização quando a página carrega
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Dashboard carregado');
-    checkDatasetStatus();
-});
+function showAllAnalyses() {
+    scrollToAnalyses();
+}
 </script>
 {% endblock %}

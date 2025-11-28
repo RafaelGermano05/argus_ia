@@ -126,30 +126,17 @@ function showAlert(message, type) {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
     alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
     document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
     
-    // Auto-remove após 5 segundos
     setTimeout(() => {
         if (alertDiv.parentElement) {
             alertDiv.remove();
         }
     }, 5000);
-}
-
-// Função para download de CSV
-function downloadCSV(csvContent, fileName) {
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', fileName);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
 }
 
 // Gerar Dataset
@@ -181,15 +168,12 @@ document.getElementById('generateDatasetForm').addEventListener('submit', async 
         const result = await response.json();
         
         if (result.success) {
-            // Mostrar seção de download
             document.getElementById('downloadSection').classList.remove('d-none');
             document.getElementById('noDatasetGenerated').classList.add('d-none');
             
-            // Configurar links de download
             document.getElementById('downloadPostsBtn').href = result.download_links.posts;
             document.getElementById('downloadCommentsBtn').href = result.download_links.comments;
             
-            // Mostrar informações do dataset
             document.getElementById('datasetDetails').innerHTML = `
                 <strong>Posts:</strong> ${result.dataset_info.posts_count.toLocaleString()}<br>
                 <strong>Comentários:</strong> ${result.dataset_info.comments_count.toLocaleString()}<br>
