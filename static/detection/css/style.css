@@ -395,3 +395,34 @@ footer.bg-dark {
 .glow-effect:hover {
     box-shadow: 0 0 25px rgba(106, 13, 173, 0.7);
 }
+
+.dataset-info-box {
+    background: rgba(42, 42, 62, 0.95) !important;
+    border: 1px solid var(--secondary-purple) !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(106, 13, 173, 0.3);
+}
+
+.dataset-info-box h6 {
+    color: #ffffff !important;
+    border-bottom: 1px solid var(--secondary-purple);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.dataset-info-box .small {
+    color: #e6e6e6 !important;
+    line-height: 1.5;
+}
+
+/* Melhorar a visibilidade dos textos */
+.text-muted {
+    color: #b3b3b3 !important;
+}
+
+.text-success {
+    color: #00ff00 !important;
+    font-weight: 600;
+}

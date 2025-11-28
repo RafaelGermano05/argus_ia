@@ -175,6 +175,39 @@
 
 {% block scripts %}
 <script>
+// Função para mostrar alertas
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto-remove após 5 segundos
+    setTimeout(() => {
+        if (alertDiv.parentElement) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Função para rolar até as análises
+function scrollToAnalyses() {
+    const analysesSection = document.getElementById('analysesSection');
+    if (analysesSection) {
+        analysesSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Função para mostrar todas as análises
+function showAllAnalyses() {
+    scrollToAnalyses();
+}
+
 // Upload de Dataset
 document.getElementById('uploadDatasetForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -199,7 +232,7 @@ document.getElementById('uploadDatasetForm').addEventListener('submit', async fu
         const result = await response.json();
         
         if (result.success) {
-
+            // Mostrar informações do dataset
             document.getElementById('datasetDetails').innerHTML = `
                 <div class="row">
                     <div class="col-6">
@@ -217,12 +250,12 @@ document.getElementById('uploadDatasetForm').addEventListener('submit', async fu
             document.getElementById('noDatasetInfo').classList.add('d-none');
             document.getElementById('uploadSection').classList.add('d-none');
             
-            showAlert('Dataset carregado com sucesso!', 'success');
+            showAlert('✅ Dataset carregado com sucesso!', 'success');
         } else {
-            showAlert('Erro ao carregar dataset: ' + result.error, 'danger');
+            showAlert('❌ Erro ao carregar dataset: ' + result.error, 'danger');
         }
     } catch (error) {
-        showAlert('Erro de conexão: ' + error.message, 'danger');
+        showAlert('❌ Erro de conexão: ' + error.message, 'danger');
     } finally {
         uploadBtn.disabled = false;
         uploadBtn.innerHTML = originalText;
@@ -231,6 +264,8 @@ document.getElementById('uploadDatasetForm').addEventListener('submit', async fu
 
 // Executar Análise
 document.getElementById('analyzeBtn').addEventListener('click', async function() {
+    console.log('🔍 Analyze button clicked');
+    
     const analyzeBtn = document.getElementById('analyzeBtn');
     const progressDiv = document.getElementById('analysisProgress');
     const originalText = analyzeBtn.innerHTML;
@@ -240,16 +275,25 @@ document.getElementById('analyzeBtn').addEventListener('click', async function()
     progressDiv.classList.remove('d-none');
     
     try {
+        console.log('📤 Enviando requisição de análise...');
+        
         const response = await fetch('{% url "detection:analyze_dataset" %}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': '{{ csrf_token }}'
             },
-            body: JSON.stringify({}) // Envia dados vazios ou necessários
+            body: JSON.stringify({}) // Dados vazios
         });
         
+        console.log('📥 Resposta recebida:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const result = await response.json();
+        console.log('📊 Resultado da análise:', result);
         
         if (result.success) {
             showAlert(
@@ -269,8 +313,8 @@ document.getElementById('analyzeBtn').addEventListener('click', async function()
             showAlert('❌ Erro na análise: ' + result.error, 'danger');
         }
     } catch (error) {
+        console.error('💥 Erro completo:', error);
         showAlert('❌ Erro de conexão: ' + error.message, 'danger');
-        console.error('Erro detalhado:', error);
     } finally {
         analyzeBtn.disabled = false;
         analyzeBtn.innerHTML = originalText;
@@ -278,15 +322,19 @@ document.getElementById('analyzeBtn').addEventListener('click', async function()
     }
 });
 
-// Função para mostrar alertas
-function showAlert(message, type) {
-   
+// Debug: Verificar status do dataset
+function checkDatasetStatus() {
+    const datasetInfo = document.getElementById('datasetInfo');
+    const noDatasetInfo = document.getElementById('noDatasetInfo');
+    
+    console.log('Dataset Info visible:', !datasetInfo.classList.contains('d-none'));
+    console.log('No Dataset visible:', !noDatasetInfo.classList.contains('d-none'));
 }
 
-// Função para mostrar todas as análises
-function showAllAnalyses() {
-    // Redireciona para a página principal onde todas as análises são mostradas
-    window.location.href = "{% url 'detection:dashboard' %}#analyses";
-}
+// Inicialização quando a página carrega
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Dashboard carregado');
+    checkDatasetStatus();
+});
 </script>
 {% endblock %}
