@@ -229,8 +229,53 @@ document.getElementById('uploadDatasetForm').addEventListener('submit', async fu
     }
 });
 
+// Executar Análise
 document.getElementById('analyzeBtn').addEventListener('click', async function() {
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const progressDiv = document.getElementById('analysisProgress');
+    const originalText = analyzeBtn.innerHTML;
     
+    analyzeBtn.disabled = true;
+    analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analisando...';
+    progressDiv.classList.remove('d-none');
+    
+    try {
+        const response = await fetch('{% url "detection:analyze_dataset" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({}) // Envia dados vazios ou necessários
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert(
+                `✅ Análise concluída com sucesso!<br>
+                📊 Comentários analisados: ${result.analysis.total_comments.toLocaleString()}<br>
+                🚨 Padrões suspeitos detectados: ${result.analysis.suspicious_count}<br>
+                📈 Taxa de detecção: ${result.analysis.suspicious_percentage.toFixed(2)}%<br>
+                🧠 Acurácia do modelo: ${(result.analysis.accuracy * 100).toFixed(2)}%`, 
+                'success'
+            );
+            
+            // Redirecionar para resultados após 3 segundos
+            setTimeout(() => {
+                window.location.href = `/results/${result.analysis.id}/`;
+            }, 3000);
+        } else {
+            showAlert('❌ Erro na análise: ' + result.error, 'danger');
+        }
+    } catch (error) {
+        showAlert('❌ Erro de conexão: ' + error.message, 'danger');
+        console.error('Erro detalhado:', error);
+    } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerHTML = originalText;
+        progressDiv.classList.add('d-none');
+    }
 });
 
 // Função para mostrar alertas
