@@ -121,6 +121,77 @@
 
 {% block scripts %}
 <script>
+// Gerar Dataset
+document.getElementById('generateDatasetForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const generateBtn = document.getElementById('generateBtn');
+    const originalText = generateBtn.innerHTML;
+    
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+    
+    const data = {
+        posts_count: parseInt(document.getElementById('postsCount').value),
+        comments_count: parseInt(document.getElementById('commentsCount').value),
+        suspicious_ratio: parseFloat(document.getElementById('suspiciousRatio').value) / 100
+    };
+    
+    // No evento de submit do formulário, substitua a parte do try por:
+    try {
+        const response = await fetch('{% url "detection:generate_and_download_dataset" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Fazer download automático dos CSVs
+            downloadCSV(result.posts_csv, 'posts.csv');
+            setTimeout(() => {
+                downloadCSV(result.comments_csv, 'comments.csv');
+            }, 500);
+            
+            // Mostrar informações
+            document.getElementById('downloadSection').classList.remove('d-none');
+            document.getElementById('noDatasetGenerated').classList.add('d-none');
+            
+            document.getElementById('datasetDetails').innerHTML = `
+                <strong>Posts:</strong> ${result.dataset_info.posts_count.toLocaleString()}<br>
+                <strong>Comentários:</strong> ${result.dataset_info.comments_count.toLocaleString()}<br>
+                <strong>Taxa suspeita:</strong> ${result.dataset_info.suspicious_ratio}<br>
+                <strong>Suspeitos gerados:</strong> ${result.dataset_info.actual_suspicious}
+            `;
+            
+            showAlert('Dataset gerado! Os downloads iniciarão automaticamente.', 'success');
+        } else {
+            showAlert('Erro ao gerar dataset: ' + result.error, 'danger');
+        }
+    } catch (error) {
+        showAlert('Erro de conexão: ' + error.message, 'danger');
+    }
+
+    // Função auxiliar para download de CSV
+    function downloadCSV(csvContent, fileName) {
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', fileName);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+});
+
+
+
 // Função para mostrar alertas
 function showAlert(message, type) {
     const alertDiv = document.createElement('div');
@@ -138,75 +209,5 @@ function showAlert(message, type) {
         }
     }, 5000);
 }
-
-// Função para download de CSV
-function downloadCSV(csvContent, fileName) {
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', fileName);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// Gerar Dataset
-document.getElementById('generateDatasetForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const generateBtn = document.getElementById('generateBtn');
-    const originalText = generateBtn.innerHTML;
-    
-    generateBtn.disabled = true;
-    generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
-    
-    const data = {
-        posts_count: parseInt(document.getElementById('postsCount').value),
-        comments_count: parseInt(document.getElementById('commentsCount').value),
-        suspicious_ratio: parseFloat(document.getElementById('suspiciousRatio').value) / 100
-    };
-    
-    try {
-        const response = await fetch('{% url "detection:generate_and_download_dataset" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify(data)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            // Mostrar seção de download
-            document.getElementById('downloadSection').classList.remove('d-none');
-            document.getElementById('noDatasetGenerated').classList.add('d-none');
-            
-            // Configurar links de download
-            document.getElementById('downloadPostsBtn').href = result.download_links.posts;
-            document.getElementById('downloadCommentsBtn').href = result.download_links.comments;
-            
-            // Mostrar informações do dataset
-            document.getElementById('datasetDetails').innerHTML = `
-                <strong>Posts:</strong> ${result.dataset_info.posts_count.toLocaleString()}<br>
-                <strong>Comentários:</strong> ${result.dataset_info.comments_count.toLocaleString()}<br>
-                <strong>Taxa suspeita:</strong> ${result.dataset_info.suspicious_ratio}<br>
-                <strong>Suspeitos gerados:</strong> ${result.dataset_info.actual_suspicious}
-            `;
-            
-            showAlert('✅ Dataset gerado com sucesso! Clique nos botões para baixar os arquivos CSV.', 'success');
-        } else {
-            showAlert('❌ Erro ao gerar dataset: ' + result.error, 'danger');
-        }
-    } catch (error) {
-        showAlert('❌ Erro de conexão: ' + error.message, 'danger');
-    } finally {
-        generateBtn.disabled = false;
-        generateBtn.innerHTML = originalText;
-    }
-});
 </script>
 {% endblock %}
