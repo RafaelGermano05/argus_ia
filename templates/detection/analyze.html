@@ -1,0 +1,194 @@
+{% extends 'detection/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="fas fa-database"></i> Análise com Machine Learning</h1>
+                <p class="lead">Faça upload de um dataset CSV ou gere um novo para executar a análise</p>
+            </div>
+            <a href="{% url 'detection:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar à Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-play-circle"></i> Executar Análise com Machine Learning
+                    </h5>
+                </div>
+                <div class="card-body">
+
+                    <!-- Upload de Dataset Existente -->
+                    <div id="uploadSection">
+                        <h6><i class="fas fa-upload"></i> Upload de Dataset Existente</h6>
+                        <form id="uploadDatasetForm" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="postsFile" class="form-label">Selecione arquivos CSV (posts.csv e
+                                    comments.csv)</label>
+                                <input class="form-control" type="file" id="postsFile" name="posts_file" accept=".csv"
+                                    required>
+                                <small class="form-text text-muted">Arquivo posts.csv - deve conter colunas:
+                                    post_id,user_id,username,caption,post_date,likes_count</small>
+                            </div>
+                            <div class="mb-3">
+                                <input class="form-control" type="file" id="commentsFile" name="comments_file"
+                                    accept=".csv" required>
+                                <small class="form-text text-muted">Arquivo comments.csv - deve conter:
+                                    comment_id,post_id,user_id,username,comment_text,comment_date</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" id="uploadBtn">
+                                <i class="fas fa-upload"></i> Fazer Upload e Preparar Análise
+                            </button>
+                        </form>
+                    </div>
+
+                    <hr>
+
+                    <!-- Dataset Carregado -->
+                    <div id="datasetInfo" class="d-none">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-database"></i> Dataset Carregado:</h6>
+                            <div id="datasetDetails" class="mt-2"></div>
+                        </div>
+                        <button id="analyzeBtn" class="btn btn-success w-100">
+                            <i class="fas fa-brain"></i> Executar Análise com Machine Learning
+                        </button>
+                    </div>
+
+                    <div id="noDatasetInfo" class="text-center py-4">
+                        <i class="fas fa-database fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Faça upload de um dataset CSV ou gere um novo para executar a análise</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Status da Análise -->
+            <div id="analysisProgress" class="card d-none mt-3">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-sync-alt fa-spin"></i> Processando Análise</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                    </div>
+                    <p class="text-center mb-0">Treinando modelo e analisando dados...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Função para mostrar alertas
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+        const container = document.querySelector('.container');
+        container.insertBefore(alertDiv, container.firstChild);
+
+        setTimeout(() => {
+            if (alertDiv.parentElement) alertDiv.remove();
+        }, 5000);
+    }
+
+    // Upload de Dataset
+    document.getElementById('uploadDatasetForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const uploadBtn = document.getElementById('uploadBtn');
+        const originalText = uploadBtn.innerHTML;
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+
+        const formData = new FormData();
+        formData.append('posts_file', document.getElementById('postsFile').files[0]);
+        formData.append('comments_file', document.getElementById('commentsFile').files[0]);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        try {
+            const response = await fetch('{% url "detection:upload_dataset" %}', { method: 'POST', body: formData });
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('datasetDetails').innerHTML = `
+                <div class="row">
+                    <div class="col-6">
+                        <strong>${result.dataset.name}</strong><br>
+                        <small>Posts: ${result.dataset.posts_count}</small>
+                    </div>
+                    <div class="col-6">
+                        <small>Comentários: ${result.dataset.comments_count}</small><br>
+                        <small class="text-success">✓ Dataset carregado!</small>
+                    </div>
+                </div>
+            `;
+                document.getElementById('datasetInfo').classList.remove('d-none');
+                document.getElementById('noDatasetInfo').classList.add('d-none');
+                document.getElementById('uploadSection').classList.add('d-none');
+                showAlert('✅ Dataset carregado com sucesso!', 'success');
+            } else {
+                showAlert('❌ Erro ao carregar dataset: ' + result.error, 'danger');
+            }
+        } catch (error) {
+            showAlert('❌ Erro de conexão: ' + error.message, 'danger');
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = originalText;
+        }
+    });
+
+    // Executar Análise
+    document.getElementById('analyzeBtn').addEventListener('click', async function () {
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const progressDiv = document.getElementById('analysisProgress');
+        const originalText = analyzeBtn.innerHTML;
+
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analisando...';
+        progressDiv.classList.remove('d-none');
+
+        try {
+            const response = await fetch('{% url "detection:analyze_dataset" %}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({})
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                showAlert(
+                    `✅ Análise concluída com sucesso!<br>
+                📊 Comentários analisados: ${result.analysis.total_comments.toLocaleString()}<br>
+                🚨 Suspeitos detectados: ${result.analysis.suspicious_count}<br>
+                📈 Taxa de detecção: ${result.analysis.suspicious_percentage.toFixed(2)}%<br>
+                🧠 Acurácia: ${(result.analysis.accuracy * 100).toFixed(2)}%`,
+                    'success'
+                );
+                setTimeout(() => { window.location.href = `/results/${result.analysis.id}/`; }, 3000);
+            } else {
+                showAlert('❌ Erro na análise: ' + result.error, 'danger');
+            }
+        } catch (error) {
+            showAlert('❌ Erro de conexão: ' + error.message, 'danger');
+        } finally {
+            analyzeBtn.disabled = false;
+            analyzeBtn.innerHTML = originalText;
+            progressDiv.classList.add('d-none');
+        }
+    });
+</script>
+{% endblock %}

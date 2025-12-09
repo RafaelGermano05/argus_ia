@@ -3,12 +3,16 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <div class="jumbotron bg-light p-4 rounded">
-            <h1 class="display-4"><i class="fas fa-shield-alt text-primary"></i> ARGUS IA</h1>
+        <div class="jumbotron shadow p-4 rounded">
+            <h1 class="display-4"><i class="fas fa-shield-alt" style="color: #a753e4;"></i> ARGUS IA</h1>
             <p class="lead">Sistema Inteligente de Detecção de Padrões Suspeitos em Redes Sociais</p>
             <hr class="my-4">
-            <p>Faça upload de um dataset existente ou gere um novo para análise.</p>
-            <a href="{% url 'detection:generate_dataset_page' %}" class="btn btn-primary btn-lg">
+            <a href="{% url 'detection:analyze_page' %}" class="btn btn-lg"
+                style="background-color: #a753e4; color: white;">
+                <i class="fas fa-brain"></i> Realizar Análise com ML
+            </a>
+            <a href="{% url 'detection:generate_dataset_page' %}" class="btn btn-lg"
+                style="background-color: #28a745; color: white;">
                 <i class="fas fa-plus-circle"></i> Gerar Novo Dataset
             </a>
         </div>
@@ -18,16 +22,16 @@
 <div class="row mt-4">
     <!-- Estatísticas Gerais -->
     <div class="col-md-3">
-        <div class="card stat-card text-white bg-primary">
+        <div class="card stat-card shadow" style="background-color: #a753e4; color: white;">
             <div class="card-body text-center">
                 <i class="fas fa-database fa-2x mb-2"></i>
-                <h5 class="card-title">Datasets</h5>
+                <h5 class="card-title">Datasets Gerados</h5>
                 <h2 class="card-text">{{ total_datasets }}</h2>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card stat-card text-white bg-success">
+        <div class="card stat-card shadow" style="background-color: #7a2bb3 ; color: white;">
             <div class="card-body text-center">
                 <i class="fas fa-chart-bar fa-2x mb-2"></i>
                 <h5 class="card-title">Análises</h5>
@@ -36,192 +40,135 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card stat-card text-white bg-warning">
+        <div class="card stat-card shadow" style="background-color: #c88df7 ; color: white;">
             <div class="card-body text-center">
                 <i class="fas fa-robot fa-2x mb-2"></i>
-                <h5 class="card-title">Modelo ML</h5>
-                <h2 class="card-text">Ativo</h2>
+                <h5 class="card-title">Posts Analisados</h5>
+                <h2 class="card-text">{{ total_posts_analyzed }}</h2>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card stat-card text-white bg-info">
+        <div class="card stat-card shadow" style="background-color: #6b4e91 ; color: white;">
             <div class="card-body text-center">
                 <i class="fas fa-bolt fa-2x mb-2"></i>
-                <h5 class="card-title">Tempo Real</h5>
-                <h2 class="card-text">Pronto</h2>
+                <h5 class="card-title">Comentários Analisados</h5>
+                <h2 class="card-text">{{ total_comments_analyzed }}</h2>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Container Principal - Upload e Análise -->
-<div class="row mt-4">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="card-title mb-0"><i class="fas fa-play-circle"></i> Executar Análise com Machine Learning</h5>
-            </div>
-            <div class="card-body">
-                <!-- Upload de Dataset Existente -->
-                <div id="uploadSection">
-                    <h6><i class="fas fa-upload"></i> Upload de Dataset Existente</h6>
-                    <form id="uploadDatasetForm" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="datasetFile" class="form-label">Selecione arquivos CSV (posts.csv e comments.csv)</label>
-                            <input class="form-control" type="file" id="postsFile" name="posts_file" accept=".csv" required>
-                            <small class="form-text text-muted">Arquivo posts.csv - deve conter colunas: post_id,user_id,username,caption,post_date,likes_count</small>
-                        </div>
-                        <div class="mb-3">
-                            <input class="form-control" type="file" id="commentsFile" name="comments_file" accept=".csv" required>
-                            <small class="form-text text-muted">Arquivo comments.csv - deve conter: comment_id,post_id,user_id,username,comment_text,comment_date</small>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100" id="uploadBtn">
-                            <i class="fas fa-upload"></i> Fazer Upload e Preparar Análise
-                        </button>
-                    </form>
-                </div>
 
-                <hr>
-
-                <!-- Dataset Carregado -->
-                <div id="datasetInfo" class="d-none">
-                    <div class="alert alert-info">
-                        <h6><i class="fas fa-database"></i> Dataset Carregado:</h6>
-                        <div id="datasetDetails" class="mt-2"></div>
-                    </div>
-                    <button id="analyzeBtn" class="btn btn-success w-100">
-                        <i class="fas fa-brain"></i> Executar Análise com Machine Learning
-                    </button>
-                </div>
-                
-                <div id="noDatasetInfo" class="text-center py-4">
-                    <i class="fas fa-database fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">Faça upload de um dataset CSV ou gere um novo para executar a análise</p>
-                </div>
-            </div>
+<div class="col-md-12">
+    <!-- Informações de Formato -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h6 class="card-title mb-0"><i class="fas fa-info-circle"></i> Formato do Dataset</h6>
         </div>
-
-        <!-- Status da Análise -->
-        <div id="analysisProgress" class="card d-none mt-3">
-            <div class="card-header bg-warning text-white">
-                <h5 class="card-title mb-0"><i class="fas fa-sync-alt fa-spin"></i> Processando Análise</h5>
-            </div>
-            <div class="card-body">
-                <div class="progress mb-3">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
-                </div>
-                <p class="text-center mb-0">Treinando modelo e analisando dados...</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <!-- Informações de Formato -->
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h6 class="card-title mb-0"><i class="fas fa-info-circle"></i> Formato do Dataset</h6>
-            </div>
-            <div class="card-body">
-                <h6>posts.csv:</h6>
-                <code class="small">
+        <div class="card-body">
+            <h6>posts.csv:</h6>
+            <code class="small">
                     post_id,user_id,username,caption,post_date,likes_count<br>
                     1,101,user_1,"Post exemplo",2024-01-01,45
                 </code>
-                
-                <h6 class="mt-3">comments.csv:</h6>
-                <code class="small">
+
+            <h6 class="mt-3">comments.csv:</h6>
+            <code class="small">
                     comment_id,post_id,user_id,username,comment_text,comment_date<br>
                     1,1,201,user_2,"Comentário",2024-01-01
                 </code>
-                
-                <div class="mt-3">
-                    <a href="{% url 'detection:generate_dataset_page' %}" class="btn btn-outline-primary btn-sm w-100">
-                        <i class="fas fa-download"></i> Baixar Template
-                    </a>
-                </div>
-            </div>
-        </div>
 
-        <!-- Análises Recentes -->
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="card-title mb-0"><i class="fas fa-history"></i> Análises Recentes</h6>
-            </div>
-            <div class="card-body">
-                {% if recent_analyses %}
-                    {% for analysis in recent_analyses|slice:":3" %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <small>{{ analysis.dataset.name|truncatewords:3 }}</small>
-                        <span class="badge {% if analysis.suspicious_count > 0 %}bg-danger{% else %}bg-success{% endif %}">
-                            {{ analysis.suspicious_count }}
-                        </span>
-                    </div>
-                    {% endfor %}
-                    <a href="#" class="btn btn-outline-secondary btn-sm w-100 mt-2" onclick="showAllAnalyses()">
-    Ver Todas
-</a>
-                    
-                    </a>
-                {% else %}
-                    <p class="text-muted small mb-0">Nenhuma análise recente</p>
-                {% endif %}
+            <div class="mt-3">
+                <a href="{% url 'detection:generate_dataset_page' %}" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="fas fa-download"></i> Baixar Template
+                </a>
             </div>
         </div>
     </div>
+
+    <!-- Análises Recentes -->
+    <div class="card mt-3">
+        <div class="card-header">
+            <h6 class="card-title mb-0"><i class="fas fa-history"></i> Análises Recentes</h6>
+        </div>
+        <div class="card-body">
+            {% if recent_analyses %}
+            {% for analysis in recent_analyses|slice:":3" %}
+            <a href="{% url 'detection:analysis_results' analysis.id %}"
+                class="d-flex justify-content-between align-items-center mb-2 text-decoration-none">
+                <small>{{ analysis.dataset.name|truncatewords:3 }}</small>
+                <span class="badge {% if analysis.suspicious_count > 0 %}bg-danger{% else %}bg-success{% endif %}">
+                    {{ analysis.suspicious_count }}
+                </span>
+            </a>
+            {% endfor %}
+
+            <!-- Botão - Ver Todas -->
+            <a href="{% url 'detection:all_analyses' %}"
+               class="btn btn-outline-secondary btn-sm w-100 mt-2">
+                Ver Todas
+            </a>
+
+            {% else %}
+            <p class="text-muted small mb-0">Nenhuma análise recente</p>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 
 <script>
-// Função para mostrar alertas - COMPLETA
-function showAlert(message, type) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
+    // Função para mostrar alertas - COMPLETA
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
         <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    
-    const container = document.querySelector('.container');
-    container.insertBefore(alertDiv, container.firstChild);
-    
-    // Auto-remove após 5 segundos
-    setTimeout(() => {
-        if (alertDiv.parentElement) {
-            alertDiv.remove();
-        }
-    }, 5000);
-}
 
-// Upload de Dataset
-document.getElementById('uploadDatasetForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const uploadBtn = document.getElementById('uploadBtn');
-    const originalText = uploadBtn.innerHTML;
-    
-    uploadBtn.disabled = true;
-    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
-    
-    const formData = new FormData();
-    formData.append('posts_file', document.getElementById('postsFile').files[0]);
-    formData.append('comments_file', document.getElementById('commentsFile').files[0]);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-    
-    try {
-        const response = await fetch('{% url "detection:upload_dataset" %}', {
-            method: 'POST',
-            body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            document.getElementById('datasetDetails').innerHTML = `
+        const container = document.querySelector('.container');
+        container.insertBefore(alertDiv, container.firstChild);
+
+        // Auto-remove após 5 segundos
+        setTimeout(() => {
+            if (alertDiv.parentElement) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+
+    // Upload de Dataset
+    document.getElementById('uploadDatasetForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const uploadBtn = document.getElementById('uploadBtn');
+        const originalText = uploadBtn.innerHTML;
+
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+
+        const formData = new FormData();
+        formData.append('posts_file', document.getElementById('postsFile').files[0]);
+        formData.append('comments_file', document.getElementById('commentsFile').files[0]);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        try {
+            const response = await fetch('{% url "detection:upload_dataset" %}', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                document.getElementById('datasetDetails').innerHTML = `
                 <div class="row">
                     <div class="col-6">
                         <strong>${result.dataset.name}</strong><br>
@@ -233,81 +180,81 @@ document.getElementById('uploadDatasetForm').addEventListener('submit', async fu
                     </div>
                 </div>
             `;
-            
-            document.getElementById('datasetInfo').classList.remove('d-none');
-            document.getElementById('noDatasetInfo').classList.add('d-none');
-            document.getElementById('uploadSection').classList.add('d-none');
-            
-            showAlert('✅ Dataset carregado com sucesso!', 'success');
-        } else {
-            showAlert('❌ Erro ao carregar dataset: ' + result.error, 'danger');
-        }
-    } catch (error) {
-        showAlert('❌ Erro de conexão: ' + error.message, 'danger');
-    } finally {
-        uploadBtn.disabled = false;
-        uploadBtn.innerHTML = originalText;
-    }
-});
 
-// Executar Análise - FUNCIONAL
-document.getElementById('analyzeBtn').addEventListener('click', async function() {
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const progressDiv = document.getElementById('analysisProgress');
-    const originalText = analyzeBtn.innerHTML;
-    
-    analyzeBtn.disabled = true;
-    analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analisando...';
-    progressDiv.classList.remove('d-none');
-    
-    try {
-        const response = await fetch('{% url "detection:analyze_dataset" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({})
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showAlert(
-                `✅ Análise concluída com sucesso!<br>
+                document.getElementById('datasetInfo').classList.remove('d-none');
+                document.getElementById('noDatasetInfo').classList.add('d-none');
+                document.getElementById('uploadSection').classList.add('d-none');
+
+                showAlert('✅ Dataset carregado com sucesso!', 'success');
+            } else {
+                showAlert('❌ Erro ao carregar dataset: ' + result.error, 'danger');
+            }
+        } catch (error) {
+            showAlert('❌ Erro de conexão: ' + error.message, 'danger');
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = originalText;
+        }
+    });
+
+    // Executar Análise - FUNCIONAL
+    document.getElementById('analyzeBtn').addEventListener('click', async function () {
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const progressDiv = document.getElementById('analysisProgress');
+        const originalText = analyzeBtn.innerHTML;
+
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analisando...';
+        progressDiv.classList.remove('d-none');
+
+        try {
+            const response = await fetch('{% url "detection:analyze_dataset" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({})
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showAlert(
+                    `✅ Análise concluída com sucesso!<br>
                 📊 Comentários analisados: ${result.analysis.total_comments.toLocaleString()}<br>
                 🚨 Suspeitos detectados: ${result.analysis.suspicious_count}<br>
                 📈 Taxa de detecção: ${result.analysis.suspicious_percentage.toFixed(2)}%<br>
-                🧠 Acurácia: ${(result.analysis.accuracy * 100).toFixed(2)}%`, 
-                'success'
-            );
-            
-            // Redirecionar para resultados
-            setTimeout(() => {
-                window.location.href = `/results/${result.analysis.id}/`;
-            }, 3000);
-        } else {
-            showAlert('❌ Erro na análise: ' + result.error, 'danger');
+                🧠 Acurácia: ${(result.analysis.accuracy * 100).toFixed(2)}%`,
+                    'success'
+                );
+
+                // Redirecionar para resultados
+                setTimeout(() => {
+                    window.location.href = `/results/${result.analysis.id}/`;
+                }, 3000);
+            } else {
+                showAlert('❌ Erro na análise: ' + result.error, 'danger');
+            }
+        } catch (error) {
+            showAlert('❌ Erro de conexão: ' + error.message, 'danger');
+        } finally {
+            analyzeBtn.disabled = false;
+            analyzeBtn.innerHTML = originalText;
+            progressDiv.classList.add('d-none');
         }
-    } catch (error) {
-        showAlert('❌ Erro de conexão: ' + error.message, 'danger');
-    } finally {
-        analyzeBtn.disabled = false;
-        analyzeBtn.innerHTML = originalText;
-        progressDiv.classList.add('d-none');
-    }
-});
+    });
 
-// Funções auxiliares
-function scrollToAnalyses() {
-    const analysesSection = document.getElementById('analysesSection');
-    if (analysesSection) {
-        analysesSection.scrollIntoView({ behavior: 'smooth' });
+    // Funções auxiliares
+    function scrollToAnalyses() {
+        const analysesSection = document.getElementById('analysesSection');
+        if (analysesSection) {
+            analysesSection.scrollIntoView({ behavior: 'smooth' });
+        }
     }
-}
 
-function showAllAnalyses() {
-    scrollToAnalyses();
-}
+    function showAllAnalyses() {
+        scrollToAnalyses();
+    }
 </script>
 {% endblock %}

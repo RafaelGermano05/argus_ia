@@ -11,23 +11,58 @@ import io
 import zipfile
 import numpy as np
 
+
 from .models import Dataset, AnalysisSession, SuspiciousComment, UserBehavior, PostAnalysis
 from .ml.data_generator import DataGenerator
 from .ml.detector import SuspiciousPatternDetector
 from .utils.exporters import export_to_csv, export_to_excel
+from django.shortcuts import render
+from django.db.models import Sum
+from django.core.paginator import Paginator
+from django.views import View
+from django.shortcuts import render
+from .models import AnalysisSession
+
+
+def analyze_page(request):
+    return render(request, 'detection/analyze.html')
 
 class DashboardView(View):
     def get(self, request):
         datasets = Dataset.objects.all().order_by('-created_at')
         analyses = AnalysisSession.objects.all().order_by('-created_at')[:10]
-        
+
+        total_posts_analyzed = AnalysisSession.objects.aggregate(
+        total_posts=Sum('dataset__posts_count')
+        )['total_posts'] or 0
+
+        total_comments_analyzed = AnalysisSession.objects.aggregate(
+        total_comments=Sum('total_comments')
+        )['total_comments'] or 0
+
         context = {
             'datasets': datasets,
             'recent_analyses': analyses,
             'total_analyses': analyses.count(),
             'total_datasets': datasets.count(),
+            'total_posts_analyzed': total_posts_analyzed,
+            'total_comments_analyzed': total_comments_analyzed
         }
         return render(request, 'detection/dashboard.html', context)
+
+class AllAnalysesView(View):
+    def get(self, request):
+        analyses = AnalysisSession.objects.all().order_by('-created_at')
+
+        paginator = Paginator(analyses, 10)  # 10 análises por página
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            'page_obj': page_obj
+        }
+
+        return render(request, 'detection/all_analyses.html', context)
 
 class GenerateDatasetPageView(View):
     """Página para gerar datasets"""

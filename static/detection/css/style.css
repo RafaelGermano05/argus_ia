@@ -14,18 +14,25 @@
     --info-color: #00bfff;
 }
 
-*{
+* {
     color: beige;
 }
 
+.gradient-bg {
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #6a0dad 100%);
+    min-height: 100vh;
+}
+
 .table td {
-    color: #ffffff !important; /* Força texto branco */
+    color: #ffffff !important;
+    /* Força texto branco */
     background: rgba(26, 26, 46, 0.8) !important;
     border-color: rgba(138, 43, 226, 0.3) !important;
 }
 
 .table th {
-    color: #ffffff !important; /* Texto branco nos cabeçalhos */
+    color: #ffffff !important;
+    /* Texto branco nos cabeçalhos */
     background: linear-gradient(135deg, var(--primary-purple) 0%, var(--secondary-purple) 100%) !important;
     border: none !important;
 }
@@ -129,27 +136,27 @@ body {
     transition: all 0.3s ease;
 }
 
-.stat-card.bg-primary { 
+.stat-card.bg-primary {
     background: linear-gradient(135deg, var(--primary-purple) 0%, #5a0ca8 100%) !important;
     border-left-color: var(--secondary-purple);
 }
 
-.stat-card.bg-success { 
+.stat-card.bg-success {
     background: linear-gradient(135deg, #00cc00 0%, #009900 100%) !important;
     border-left-color: #00ff00;
 }
 
-.stat-card.bg-warning { 
+.stat-card.bg-warning {
     background: linear-gradient(135deg, #ff9900 0%, #cc7700 100%) !important;
     border-left-color: #ffa500;
 }
 
-.stat-card.bg-info { 
+.stat-card.bg-info {
     background: linear-gradient(135deg, #0099cc 0%, #006699 100%) !important;
     border-left-color: #00bfff;
 }
 
-.stat-card.bg-danger { 
+.stat-card.bg-danger {
     background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%) !important;
     border-left-color: #ff6666;
 }
@@ -191,12 +198,29 @@ body {
     padding: 0.4em 0.8em;
 }
 
-.bg-primary { background: linear-gradient(45deg, var(--primary-purple), var(--secondary-purple)) !important; }
-.bg-success { background: linear-gradient(45deg, #00cc00, #00ff00) !important; }
-.bg-warning { background: linear-gradient(45deg, #ff9900, #ffa500) !important; }
-.bg-info { background: linear-gradient(45deg, #0099cc, #00bfff) !important; }
-.bg-danger { background: linear-gradient(45deg, #ff4444, #ff6666) !important; }
-.bg-secondary { background: linear-gradient(45deg, #6c757d, #495057) !important; }
+.bg-primary {
+    background: linear-gradient(45deg, var(--primary-purple), var(--secondary-purple)) !important;
+}
+
+.bg-success {
+    background: linear-gradient(45deg, #00cc00, #00ff00) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(45deg, #ff9900, #ffa500) !important;
+}
+
+.bg-info {
+    background: linear-gradient(45deg, #0099cc, #00bfff) !important;
+}
+
+.bg-danger {
+    background: linear-gradient(45deg, #ff4444, #ff6666) !important;
+}
+
+.bg-secondary {
+    background: linear-gradient(45deg, #6c757d, #495057) !important;
+}
 
 /* Botões Estilizados */
 .btn {
@@ -277,22 +301,22 @@ body {
     background: rgba(26, 26, 46, 0.9);
 }
 
-.alert-success { 
+.alert-success {
     border-left-color: var(--success-color);
     color: var(--success-color);
 }
 
-.alert-danger { 
+.alert-danger {
     border-left-color: var(--danger-color);
     color: var(--danger-color);
 }
 
-.alert-warning { 
+.alert-warning {
     border-left-color: var(--warning-color);
     color: var(--warning-color);
 }
 
-.alert-info { 
+.alert-info {
     border-left-color: var(--info-color);
     color: var(--info-color);
 }
@@ -353,13 +377,14 @@ footer.bg-dark {
 
 /* Animações */
 @keyframes fadeIn {
-    from { 
-        opacity: 0; 
-        transform: translateY(20px); 
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -372,16 +397,16 @@ footer.bg-dark {
     .card-body {
         padding: 1rem;
     }
-    
+
     .table-responsive {
         font-size: 0.85rem;
     }
-    
+
     .btn {
         font-size: 0.9rem;
         padding: 0.5rem 1rem;
     }
-    
+
     .navbar-brand {
         font-size: 1.4rem;
     }

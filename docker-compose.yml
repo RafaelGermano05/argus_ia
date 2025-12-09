@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    container_name: argus_db
+    environment:
+      POSTGRES_USER: argususer
+      POSTGRES_PASSWORD: arguspass
+      POSTGRES_DB: argusdb
+    ports:
+      - "5433:5433"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    container_name: argus_web
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://argususer:arguspass@db:5432/argusdb
+
+volumes:
+  postgres_data:
