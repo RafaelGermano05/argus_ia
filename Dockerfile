@@ -1,22 +1,19 @@
+# Use uma imagem oficial do Python
 FROM python:3.10-slim
 
-# Instalar dependências do sistema para psycopg2
-RUN apt-get update && apt-get install -y \
-    gcc \
-    postgresql-client \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
+# Defina o diretório de trabalho dentro do container
 WORKDIR /app
 
+# Copie os arquivos de requirements e instale as dependências
 COPY requirements.txt .
 RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
+# Copie todo o projeto para dentro do container
 COPY . .
 
-# Coletar static files ANTES de rodar
-RUN python manage.py collectstatic --noinput
+# Exponha a porta que o Django vai rodar
+EXPOSE 8000
 
-# Não exponha porta fixa - Railway usa $PORT
-CMD ["gunicorn", "argus_ia.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+# Comando para rodar o servidor Django
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
