@@ -8,7 +8,8 @@ ARGUS IA é um sistema acadêmico desenvolvido para identificação de padrões 
 ![NumPy](https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white)
 ![Bootstrap](https://img.shields.io/badge/bootstrap-%238511FA.svg?style=for-the-badge&logo=bootstrap&logoColor=white)
 ![Chart.js](https://img.shields.io/badge/chart.js-F5788D.svg?style=for-the-badge&logo=chart.js&logoColor=white)
-![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-green?style=for-the-badge)
+![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
 
 
 ## Objetivos do Projeto
@@ -38,12 +39,6 @@ Desenvolver um serviço web que identifica perfis e postagens com comportamento 
 - Banco de Dados (dev): SQLite.
 
 ## Instalação e Execução (guia passo-a-passo)
-
-### Requisitos
-
-- Python 3.10+ (ou versão compatível com Django 4.2)
-- pip
-- virtualenv (recomendado)
 
 ### Passos
 
@@ -89,6 +84,30 @@ python manage.py runserver
 ```
 
 (7) Acesse http://127.0.0.1:8000/ e navegue até o dashboard/detection.
+
+## Execução com Docker
+
+(1) Build e subir containers
+
+```bash
+docker-compose up --build
+```
+
+(2) Rodar migrações dentro do container
+
+```bash
+docker-compose exec web python manage.py migrate
+```
+
+(3) Criar superuser
+
+```bash
+docker-compose exec web python manage.py createsuperuser
+```
+
+(4) Acessar o sistema
+
+Acesse http://localhost:8000/
 
 > Observação: o repositório contém db.sqlite3, portanto pode haver dados de exemplo já disponíveis.
 
