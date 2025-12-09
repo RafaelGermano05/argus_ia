@@ -121,24 +121,21 @@ CSRF_TRUSTED_ORIGINS = [
 # Segurança em produção — NÃO aplicar no ambiente local
 # Segurança em produção
 if not DEBUG:
+    # Cookies seguros no ambiente de produção
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-    # NÃO usar SSL redirect no Railway
+    # Railway NÃO aceita redirecionamento SSL dentro do container
     SECURE_SSL_REDIRECT = False
 
-    # Segurança adicional (não quebra Railway)
+    # HSTS pode ficar ativo
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-
-    # Remover os filtros depreciados (não funcionam em versões novas)
-    # SECURE_BROWSER_XSS_FILTER = True
-    # SECURE_CONTENT_TYPE_NOSNIFF = True
 else:
     # Ambiente local
-    SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
+    SECURE_SSL_REDIRECT = False
 
 PORT = os.environ.get('PORT', 8000)
