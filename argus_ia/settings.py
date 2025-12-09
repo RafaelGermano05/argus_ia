@@ -12,7 +12,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-argus-ia-2024
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['argus-ia.up.railway.app', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    host.strip() 
+    for host in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+]
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -121,21 +125,14 @@ CSRF_TRUSTED_ORIGINS = [
 # Segurança em produção — NÃO aplicar no ambiente local
 # Segurança em produção
 if not DEBUG:
-    # Cookies seguros no ambiente de produção
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
-    # Railway NÃO aceita redirecionamento SSL dentro do container
     SECURE_SSL_REDIRECT = False
-
-    # HSTS pode ficar ativo
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    SECURE_HSTS_SECONDS = 0  # evitar bloqueios durante teste
 else:
-    # Ambiente local
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     SECURE_SSL_REDIRECT = False
+
 
 PORT = os.environ.get('PORT', 8000)
