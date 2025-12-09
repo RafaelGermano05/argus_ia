@@ -56,19 +56,17 @@ WSGI_APPLICATION = 'argus_ia.wsgi.application'
 
 # Database Configuration
 # DATABASES
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+import dj_database_url
 
-if 'DATABASE_URL' in os.environ:
-    import dj_database_url
-    DATABASES['default'] = dj_database_url.config(
+# Database
+DATABASES = {
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',  # Fallback para desenvolvimento
         conn_max_age=600,
-        ssl_require=False
+        conn_health_checks=True,
+        ssl_require=True  
     )
+}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -115,6 +113,17 @@ CSRF_TRUSTED_ORIGINS = [
     'https://argus-ia.up.railway.app',
     'https://*.railway.app'
 ]
+
+# Porta dinâmica para Railway
+if 'RAILWAY_ENVIRONMENT' in os.environ or 'DATABASE_URL' in os.environ:
+    # Configurações específicas para produção no Railway
+    import django_heroku
+    django_heroku.settings(locals(), databases=False)
+    
+    # Ajuste ALLOWED_HOSTS dinamicamente
+    railway_app_name = os.environ.get('RAILWAY_STATIC_URL', '').replace('https://', '').replace('http://', '')
+    if railway_app_name:
+        ALLOWED_HOSTS.append(railway_app_name)
 
 # if not DEBUG:
 #     SECURE_SSL_REDIRECT = True
