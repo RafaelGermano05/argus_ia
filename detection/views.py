@@ -25,7 +25,7 @@ from .models import AnalysisSession
 
 
 def analyze_page(request):
-    return render(request, 'detection/analyze.html')
+    return render(request, 'templates/analyze.html')
 
 class DashboardView(View):
     def get(self, request):
