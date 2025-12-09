@@ -119,17 +119,24 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Segurança em produção — NÃO aplicar no ambiente local
-if not DEBUG and not ('localhost' in ALLOWED_HOSTS or '127.0.0.1' in ALLOWED_HOSTS):
-    SECURE_SSL_REDIRECT = True
+# Segurança em produção
+if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
+
+    # NÃO usar SSL redirect no Railway
+    SECURE_SSL_REDIRECT = False
+
+    # Segurança adicional (não quebra Railway)
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+
+    # Remover os filtros depreciados (não funcionam em versões novas)
+    # SECURE_BROWSER_XSS_FILTER = True
+    # SECURE_CONTENT_TYPE_NOSNIFF = True
 else:
-    # Ambiente local — não usar SSL
+    # Ambiente local
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
