@@ -1,19 +1,33 @@
-# Use uma imagem oficial do Python
+# Use imagem oficial do Python
 FROM python:3.10-slim
 
-# Defina o diretório de trabalho dentro do container
+# Diretório de trabalho
 WORKDIR /app
 
-# Copie os arquivos de requirements e instale as dependências
+# Configurações
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Dependências do sistema
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar requirements
 COPY requirements.txt .
+
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Copie todo o projeto para dentro do container
+# Copiar projeto
 COPY . .
 
-# Exponha a porta que o Django vai rodar
+# Coletar estáticos
+RUN python manage.py collectstatic --noinput
+
+# Expor porta
 EXPOSE 8000
 
-# Comando para rodar o servidor Django
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# O Railway vai sobrescrever esse CMD com o startCommand
+CMD ["gunicorn", "argus_ia.wsgi:application", "--bind", "0.0.0.0:8000"]
