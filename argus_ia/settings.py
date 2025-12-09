@@ -12,12 +12,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-argus-ia-2024
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = [
-    h.strip() for h in os.environ.get(
-        'ALLOWED_HOSTS',
-        'argus-ia.up.railway.app,localhost,127.0.0.1'
-    ).split(',')
-]
+ALLOWED_HOSTS = ['argus-ia.up.railway.app', 'localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
