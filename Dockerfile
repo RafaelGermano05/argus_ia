@@ -18,4 +18,5 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["bash", "-c", "python manage.py migrate && gunicorn argus_ia.wsgi:application --bind 0.0.0.0:${PORT}"]
+CMD ["bash", "-c", "python manage.py migrate && gunicorn argus_ia.wsgi:application --bind 0.0.0.0:8000"]
+
