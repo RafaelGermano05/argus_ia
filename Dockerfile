@@ -1,7 +1,12 @@
-# Use uma imagem oficial do Python
 FROM python:3.10-slim
 
-# Defina o diretório de trabalho dentro do container
+# Instalar dependências do sistema para psycopg2
+RUN apt-get update && apt-get install -y \
+    gcc \
+    postgresql-client \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Variáveis de ambiente
@@ -18,9 +23,8 @@ RUN apt-get update && apt-get install -y \
 # Copie os arquivos de requirements e instale as dependências
 COPY requirements.txt .
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copie todo o projeto para dentro do container
 COPY . .
 
 # Coletar arquivos estáticos (importante para Django)
